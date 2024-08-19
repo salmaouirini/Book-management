@@ -1,4 +1,6 @@
-#!/Users/salma/Desktop/Books-management/venv/bin/python3.11
+#!/bin/sh
+'''exec' "/Users/salma/Desktop/Book-management /venv/bin/python3.11" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys
