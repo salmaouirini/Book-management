@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('title');
+        const authorInput = document.getElementById('author');
+        const categoryInput = document.getElementById('category');
+        const resultsContainer = document.getElementById('search-results');
+
+        function searchBooks() {
+            const title = titleInput.value;
+            const author = authorInput.value;
+            const category = categoryInput.value;
+
+            fetch(`/search?title=${title}&author=${author}&category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = '';
+                    data.forEach(book => {
+                        const bookCard = `
+                            <div class="book-card">
+                                <a href="/book/${book.id}">
+                                    <h2>${book.title}</h2>
+                                    ${book.image ? `<img src="/static/uploads/${book.image}" alt="${book.title} Image">` : ''}
+                                    <p>${book.author}</p>
+                                    <p>${book.category}</p>
+                                </a>
+                            </div>`;
+                        resultsContainer.innerHTML += bookCard;
+                    });
+                });
+        }
+
+        titleInput.addEventListener('input', searchBooks);
+        authorInput.addEventListener('input', searchBooks);
+        categoryInput.addEventListener('input', searchBooks);
+    });
+</script>
+<body>
+    
+
+<h1>Book List</h1>
+<form method="get" action="{{ url_for('search') }}">
+    <input type="text" name="title" placeholder="Search by title" value="{{ request.args.get('title', '') }}">
+    <input type="text" name="author" placeholder="Search by author" value="{{ request.args.get('author', '') }}">
+    <input type="text" name="category" placeholder="Search by category" value="{{ request.args.get('category', '') }}">
+    <button type="submit">Search</button>
+</form>
+
+
+<div id="search-results" class="book-list-container">
+    {% if books %}
+        {% for book in books %}
+        <div class="book-card">
+            <a href="{{ url_for('show_book', id=book.id) }}"><h2>{{ book.title }}</h2>
+            {% if book.image %}
+            <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="{{ book.title }} Image">
+            {% endif %}
+            <p>{{ book.author }}</p></a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No books found.</p>
+    {% endif %}
+</div>
+{% endblock %}
+</body>

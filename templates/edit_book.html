@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('update_book', id=book.id) }}" method="post" enctype="multipart/form-data" class="edit-create-form">
+            <h1>Edit {{ book.title }}</h1>
+            
+            <input type="text" name="title" value="{{ book.title }}" required>
+            
+            <label for="author">Author:</label>
+            <select name="author_id" required>
+                {% for author in authors %}
+                    <option value="{{ author.id }}" {% if author.id == book.author_id %}selected{% endif %}>
+                        {{ author.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="category_id">Category:</label>
+            <select id="category_id" name="category_id" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select><br><br>
+            
+            {% if book.image %}
+                <p>Current Image:</p>
+                <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="Book Image">
+            {% endif %}
+            
+            <input type="file" name="image">
+            <button type="submit" class="edit-create-btn">Update Book</button>
+        </form>
+    </center>
+    
+    <a href="{{ url_for('show_book', id=book.id) }}">Back to Book Details</a>
+</body>
+{% endblock %}

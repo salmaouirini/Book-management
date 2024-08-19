@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<body class="author-books-body">
+    <div class="container">
+        <h1>Authors' Book Collections</h1>
+
+        {% for author in authors %}
+        <div class="author-collection">
+            <h2>{{ author.name }}</h2>
+            <div class="books-row">
+                {% for book in author.books %}
+                <div class="book-item">
+                    <img src="{{ url_for('static', filename='uploads/' ~ book.image) }}" alt="{{ book.title }}">
+                    <p>{{ book.title }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="pagination">
+            {% if authors.has_prev %}
+            <a href="{{ url_for('authors_books', page=authors.prev_num) }}">&laquo; Previous</a>
+            {% endif %}
+            {% if authors.has_next %}
+            <a href="{{ url_for('authors_books', page=authors.next_num) }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+{% endblock %}

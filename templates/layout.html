@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('userProfile', id=current_user.id) }}">UserProfile</a>
+            
+            {% endif %}
+        </div>
+        <div class="nav-right"> 
+            {% if current_user.is_authenticated %}
+            <a href=""><form action="{{ url_for('logout') }}" method="post">
+                <button type="submit">Logout</button>
+            </form></a>
+            {% endif %}
+            <div class="toggle-theme">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-theme">
+                    <span class="slider round">
+                        <i class="fas fa-sun sun-icon"></i>
+                        <i class="fas fa-moon moon-icon"></i>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="{{ url_for('authors_books') }}">Authors Books</a></li>
+            <li><a href="{{ url_for('index') }}">Books list</a></li>
+            <li><a href="{{ url_for('create_book') }}">Add Book</a></li>
+            <li><a href="{{ url_for('index') }}">Authors list</a></li>
+            <li><a href="{{ url_for('create_author') }}">Add Author</a></li>
+            <li><a href="{{ url_for('add_category') }}">Add Category</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        {% block content %}
+        <!-- Your content goes here -->
+        {% endblock %}
+    </div>
+</body>
+<script>
+    const toggleThemeButton = document.getElementById('toggle-theme');
+
+toggleThemeButton.addEventListener('click', () => {
+    console.log('Theme toggle clicked'); // Check if the click event works
+
+    document.body.classList.toggle('light-mode');
+    document.body.classList.toggle('dark-mode');
+
+    document.querySelectorAll('.edit-create-form, .user-profile-container, .content, .book-card, h1').forEach(element => {
+        console.log('Toggling theme for:', element.classList); // See what elements are being toggled
+        element.classList.toggle('light-mode');
+        element.classList.toggle('dark-mode');
+    });
+});
+
+
+</script>
+</html>

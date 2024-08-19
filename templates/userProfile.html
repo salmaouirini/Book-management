@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="user-profile-container">
+    <h1>{{ user.username }}</h1>
+    <h2>Update User Information</h2>
+    <form action="{{ url_for('update_user', id=user.id) }}" method="post" class="user-profile-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{{ user.username }}" required>
+        <label for="password">Password:</label><input type="password" id="password" name="password" placeholder="New password (leave empty if not changing)">
+        <button type="submit" class="btn update-btn">Update</button>
+    </form>
+</div>
+{% endblock %}
