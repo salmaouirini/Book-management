@@ -1,19 +1,57 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from flask_mail import Mail, Message
 import os
+import reprlib
+
+
+load_dotenv()
 
 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
-app.config['SECRET_KEY'] = '93f94dc7c3da1f5f83f8f585ea04c34cc445bd2cb844d089'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.getenv('EMAIL_ADDRESS')
+app.config['MAIL_PASSWORD'] = 'voue xtse zdbq zyop'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_DEBUG'] = True
+s = Serializer(app.config['SECRET_KEY'])
+
+def generate_confirmation_token(email):
+    return s.dumps(email, salt='email-confirm')
+def confirm_token(token, expiration=3600):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=expiration)
+    except:
+        return False
+    return email    
+
+def generate_reset_token(email):
+    return s.dumps(email, salt='password-reset')
+
+def confirm_reset_token(token, expiration=3600):
+    try:
+        email = s.loads(token, salt='password-reset', max_age=expiration)
+    except:
+        return False
+    return email
+
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
 
 UPLOAD_FOLDER = 'static/uploads'  
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -27,6 +65,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(200), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)  
+    is_confirmed = db.Column(db.Boolean, default=False)
 
 class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,17 +90,60 @@ class Category(db.Model):
 
 
 ######################## REGISTER #####################################
+@app.route('/send_simple_email')
+def send_simple_email():
+    msg = Message(
+        'Simple Test Email',
+        sender=app.config['MAIL_USERNAME'],
+        recipients=[app.config['MAIL_USERNAME']]
+    )
+    msg.body = 'Test email with plain ASCII characters.'
+
+    try:
+        mail.send(msg)
+        return 'Simple test email sent successfully!'
+    except Exception as e:
+        return f'Failed to send simple test email: {str(e)}'
+
+
+
+
+
+
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        email = request.form.get('email')
         hashed_password = generate_password_hash(password)
-        newUser = User(username=username, password=hashed_password)
+        newUser = User(username=username, password=hashed_password, email=email)
         db.session.add(newUser)
         db.session.commit()
+        
+        token = generate_confirmation_token(email)
+        verification_link = url_for('confirm_email', token=token, _external=True)
+        msg = Message('Confirm Your Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
+        msg.body = f'Your link is {verification_link}'
+        mail.send(msg)
+        
         return redirect(url_for('login'))
     return render_template('register.html')
+
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    email = confirm_token(token)
+    if email:
+        user = User.query.filter_by(email=email).first_or_404()
+        # Mark user as confirmed (you might need to add a field to your User model)
+        user.is_confirmed = True
+        db.session.commit()
+        return 'Email verified successfully!'
+    else:
+        return 'The confirmation link is invalid or has expired.'
 
 
 
@@ -73,17 +156,54 @@ def load_user(user_id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('index'))
+            if user.is_confirmed:
+                login_user(user)
+                return redirect(url_for('index'))
+            else:
+                return 'Please confirm your email before logging in.'
+        return 'Invalid email or password'
     return render_template('login.html')
 
 @app.context_processor
 def inject_user():
     return dict(user=current_user)
+
+
+
+@app.route('/request_password_reset', methods=['GET', 'POST'])
+def request_password_reset():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = generate_reset_token(email)
+            reset_link = url_for('reset_password', token=token, _external=True)
+            msg = Message('Password Reset Request', sender=app.config['MAIL_USERNAME'], recipients=[email])
+            msg.body = f'Your link is {reset_link}'
+            mail.send(msg)
+            return 'Check your email for the password reset link.'
+        return 'Email not found.'
+    return render_template('request_password_reset.html')
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    email = confirm_reset_token(token)
+    if not email:
+        return 'The reset link is invalid or has expired.'
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        user.password = generate_password_hash(password)
+        db.session.commit()
+        return redirect(url_for('login'))
+    
+    return render_template('reset_password.html')
 
 
 
