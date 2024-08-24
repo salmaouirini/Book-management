@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="show-page">
+    <h1>{{ author.name }}</h1>
+    <div class="author-details">
+        <p class="author"><strong>Author:</strong> {{ author.name }}</p>
+        <p class="bio"><strong>bio:</strong> {{ author.bio }}</p>
+    </div>
+</div>
+{% endblock %}

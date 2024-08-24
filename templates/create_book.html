@@ -14,12 +14,12 @@
                 {% endfor %}
             </select>
 
-            <label for="category_id">Category:</label>
             <select id="category_id" name="category_id" required>
+                <option value="" disabled selected placeholder="">Select Category</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
-            </select><br><br>
+            </select><br>
 
 
             <input type="file" name="image">

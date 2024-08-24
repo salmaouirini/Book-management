@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
     <style>
         body {
@@ -30,7 +31,8 @@
             color: #2c3e50;
         }
         input[type="text"],
-        input[type="password"] {
+        input[type="password"],
+        input[type="email"] {
             width: 100%;
             padding: 10px;
             margin: 0.5rem 0;
@@ -77,13 +79,27 @@
 <body>
     <div class="login-container">
         <h1>Login</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alert-container">
+              {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
         <form action="{{ url_for('login') }}" method="POST">
             <input type="email" name="email" placeholder="email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
         <a href="{{ url_for('register') }}">Don't have an account? Register here</a>
-        <a href="{{ url_for('request_password_reset') }}">Forgot password?</a>
+        <a href="{{ url_for('request_password_reset') }}">Forgot password?</a><br>
+
+        <form method="post" action="{{ url_for('resend_verification_email') }}">
+            <input type="hidden" name="email" value="{{ request.form.get('email') }}">
+            <button type="submit" class="btn-link">Resend Verification Email</button>
+        </form>
     </div>
 </body>
 </html>

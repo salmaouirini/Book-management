@@ -1,21 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Category</title>
-</head>
-<body>
-    <h1>Add a New Category</h1>
-    <form action="{{ url_for('add_category') }}" method="POST">
-        <label for="category_name">Category Name:</label>
-        <input type="text" id="category_name" name="category_name" required>
-        <button type="submit">Add Category</button>
-    </form>
-    <a href="{{ url_for('index') }}">Go Back</a>
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('add_category') }}" method="POST" class="edit-create-form">
+            <h1>Add a New Category</h1>
+            <input type="text" id="category_name" name="category_name" placeholder="Category Name" required>
+            <button type="submit" class="edit-create-btn">Add Category</button>
+        </form>
+        <a href="{{ url_for('index') }}">Go Back</a>
+    </center>
 </body>
-</html>
 {% endblock %}
-

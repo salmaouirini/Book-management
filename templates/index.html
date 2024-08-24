@@ -7,62 +7,108 @@
         const authorInput = document.getElementById('author');
         const categoryInput = document.getElementById('category');
         const resultsContainer = document.getElementById('search-results');
+        const searchButton = document.getElementById('search-button'); // Get the search button
 
         function searchBooks() {
             const title = titleInput.value;
             const author = authorInput.value;
             const category = categoryInput.value;
 
-            fetch(`/search?title=${title}&author=${author}&category=${category}`)
+            fetch(`/search?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&category=${encodeURIComponent(category)}`)
                 .then(response => response.json())
                 .then(data => {
-                    resultsContainer.innerHTML = '';
+                    resultsContainer.innerHTML = '';  // Clear previous results
                     data.forEach(book => {
                         const bookCard = `
                             <div class="book-card">
                                 <a href="/book/${book.id}">
                                     <h2>${book.title}</h2>
                                     ${book.image ? `<img src="/static/uploads/${book.image}" alt="${book.title} Image">` : ''}
-                                    <p>${book.author}</p>
-                                    <p>${book.category}</p>
+                                    <p>By: ${book.author}</p>
+                                    <p>Category: ${book.category}</p>
                                 </a>
                             </div>`;
                         resultsContainer.innerHTML += bookCard;
                     });
-                });
+                })
+                .catch(error => console.error('Error fetching books:', error));
         }
 
-        titleInput.addEventListener('input', searchBooks);
-        authorInput.addEventListener('input', searchBooks);
-        categoryInput.addEventListener('input', searchBooks);
+        // Attach the click event listener to the search button
+        searchButton.addEventListener('click', searchBooks);
     });
 </script>
 <body>
-    
+    <div class="header-container">
+        <h1 class="centered-title">Books list</h1>
+        <a href="{{ url_for('create_book') }}" class="add-btn">Add Book</a>
+        
+    </div>
+    <hr style="border-color: #d4af37;"><br><br><br>
+    <form class="search-form">
+        <input type="text" id="title" placeholder="Search by title">
+        <input type="text" id="author" placeholder="Search by author">
+        <input type="text" id="category" placeholder="Search by category">
+        <button type="button" id="search-button">Search</button> <!-- Search button with type "button" -->
+    </form>
 
-<h1>Book List</h1>
-<form method="get" action="{{ url_for('search') }}">
-    <input type="text" name="title" placeholder="Search by title" value="{{ request.args.get('title', '') }}">
-    <input type="text" name="author" placeholder="Search by author" value="{{ request.args.get('author', '') }}">
-    <input type="text" name="category" placeholder="Search by category" value="{{ request.args.get('category', '') }}">
-    <button type="submit">Search</button>
-</form>
+    <div id="search-results" class="book-list-container">
+        {% if books %}
+            {% for book in books %}
+            <div class="book-card">
+                <a href="{{ url_for('show_book', id=book.id) }}"><h2>{{ book.title }}</h2>
+                {% if book.image %}
+                <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="{{ book.title }} Image">
+                {% endif %}
+                <p>By: {{ book.author.name }}</p></a>
+                <p>Category: {{ book.category.name }}</p> 
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No books found.</p>
+        {% endif %}
+    </div>
 
-
-<div id="search-results" class="book-list-container">
-    {% if books %}
-        {% for book in books %}
-        <div class="book-card">
-            <a href="{{ url_for('show_book', id=book.id) }}"><h2>{{ book.title }}</h2>
-            {% if book.image %}
-            <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="{{ book.title }} Image">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if books.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('index', page=books.prev_num) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </span>
+            </li>
             {% endif %}
-            <p>{{ book.author }}</p></a>
-        </div>
-        {% endfor %}
-    {% else %}
-        <p>No books found.</p>
-    {% endif %}
-</div>
-{% endblock %}
+            {% for page_num in books.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == books.page %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if books.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('index', page=books.next_num) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
 </body>
+{% endblock %}

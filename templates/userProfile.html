@@ -1,6 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="user-profile-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alert-container">
+              {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
     <h1>{{ user.username }}</h1>
     <h2>Update User Information</h2>
     <form action="{{ url_for('update_user', id=user.id) }}" method="post" class="user-profile-form">
@@ -10,4 +19,9 @@
         <button type="submit" class="btn update-btn">Update</button>
     </form>
 </div>
+
+
+<form class="action-buttons" method="POST" action="{{ url_for('delete_user', id=user.id) }}" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+    <button type="submit" class="btn delete-btn btn-danger">Delete My Account</button>
+</form>
 {% endblock %}

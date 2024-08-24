@@ -1,32 +1,115 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Restore the scroll position from URL hash
+        const hash = window.location.hash;
+        if (hash) {
+            const element = document.querySelector(hash);
+            if (element) {
+                element.scrollIntoView();
+            }
+        }
+
+        // Add hash to pagination links
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', function(event) {
+                // Save scroll position as a hash in URL
+                window.sessionStorage.setItem('scrollPosition', window.scrollY);
+            });
+        });
+    });
+
+    window.addEventListener('load', function() {
+        const scrollPosition = window.sessionStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, scrollPosition);
+            window.sessionStorage.removeItem('scrollPosition');
+        }
+    });
+</script>
+
+
+
 <body class="author-books-body">
     <div class="container">
-        <h1>Authors' Book Collections</h1>
-
-        {% for author in authors %}
+        <div class="header-container">
+            <h1 class="centered-title">Books by author</h1>
+            <a href="{{ url_for('create_book') }}" class="add-btn">Add Book</a>
+        </div>
+        <br><hr style="border-color: #d4af37;"><br>
+        {% for author in authors.items %}
         <div class="author-collection">
-            <h2>{{ author.name }}</h2>
+            <a href="{{ url_for('show_author', id=author.id) }}" style="text-decoration: none;"><h2 class="author">{{ author.name }} Books: </h2></a>
             <div class="books-row">
-                {% for book in author.books %}
-                <div class="book-item">
-                    <img src="{{ url_for('static', filename='uploads/' ~ book.image) }}" alt="{{ book.title }}">
-                    <p>{{ book.title }}</p>
+                {% set paginated_books = paginated_books_by_author[author.id] %}
+                {% for book in paginated_books.items %}
+                <div class="book-item" id="book-{{ loop.index }}">
+                    <h2>{{ book.title }}</h2><a href="{{ url_for('show_book', id=book.id) }}" style="text-decoration: none !important;">
+                    <img src="{{ url_for('static', filename='uploads/' ~ book.image) }}" alt="{{ book.title }}"></a>
                 </div>
                 {% endfor %}
+            </div>
+
+            <!-- Pagination for books of this author -->
+            <div class="pagination-container">
+                {% if paginated_books.has_prev %}
+                <a href="{{ url_for('authors_books', page=authors.page, **{'book_page_' ~ author.id: paginated_books.prev_num}) }}" class="pagination-btn pagination-prev" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+                {% if paginated_books.has_next %}
+                <a href="{{ url_for('authors_books', page=authors.page, **{'book_page_' ~ author.id: paginated_books.next_num}) }}" class="pagination-btn pagination-next" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
 
-        <div class="pagination">
-            {% if authors.has_prev %}
-            <a href="{{ url_for('authors_books', page=authors.prev_num) }}">&laquo; Previous</a>
-            {% endif %}
-            {% if authors.has_next %}
-            <a href="{{ url_for('authors_books', page=authors.next_num) }}">Next &raquo;</a>
-            {% endif %}
-        </div>
+        <!-- Pagination for authors -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if authors.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('authors_books', page=authors.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </span>
+                </li>
+                {% endif %}
+                {% for page_num in authors.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == authors.page %}
+                            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('authors_books', page=page_num) }}">{{ page_num }}</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if authors.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('authors_books', page=authors.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
 </body>
 {% endblock %}

@@ -31,9 +31,9 @@
             
             <input type="file" name="image">
             <button type="submit" class="edit-create-btn">Update Book</button>
+            <a href="{{ url_for('show_book', id=book.id) }}">Back to Book Details</a>
         </form>
     </center>
     
-    <a href="{{ url_for('show_book', id=book.id) }}">Back to Book Details</a>
 </body>
 {% endblock %}
