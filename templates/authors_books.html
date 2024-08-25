@@ -3,7 +3,6 @@
 {% block content %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Restore the scroll position from URL hash
         const hash = window.location.hash;
         if (hash) {
             const element = document.querySelector(hash);
@@ -12,10 +11,8 @@
             }
         }
 
-        // Add hash to pagination links
         document.querySelectorAll('.pagination-btn').forEach(btn => {
             btn.addEventListener('click', function(event) {
-                // Save scroll position as a hash in URL
                 window.sessionStorage.setItem('scrollPosition', window.scrollY);
             });
         });

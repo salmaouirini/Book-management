@@ -9,7 +9,6 @@
 
 </head>
 <body>
-    <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
             {% if current_user.is_authenticated %}
@@ -35,20 +34,20 @@
         </div>
     </nav>
 
-    <!-- Sidebar -->
+
     <div class="sidebar">
         <ul>
-            <li><a href="{{ url_for('index') }}">Books list</a></li>
+            <li><a href="{{ url_for('books_index') }}">Books list</a></li>
             <li><a href="{{ url_for('authors_books') }}">Books by author</a></li>
             <li><a href="{{ url_for('categories_list') }}">Categories List</a></li>
             <li><a href="{{ url_for('authors_list') }}">Authors list</a></li>
         </ul>
     </div>
 
-    <!-- Main Content -->
+    
     <div class="content">
         {% block content %}
-        <!-- Your content goes here -->
+        
         {% endblock %}
     </div>
 </body>
@@ -56,13 +55,13 @@
     const toggleThemeButton = document.getElementById('toggle-theme');
 
 toggleThemeButton.addEventListener('click', () => {
-    console.log('Theme toggle clicked'); // Check if the click event works
+    console.log('Theme toggle clicked'); 
 
     document.body.classList.toggle('light-mode');
     document.body.classList.toggle('dark-mode');
 
     document.querySelectorAll('.edit-create-form, .user-profile-container, .content, .book-card, h1').forEach(element => {
-        console.log('Toggling theme for:', element.classList); // See what elements are being toggled
+        console.log('Toggling theme for:', element.classList); 
         element.classList.toggle('light-mode');
         element.classList.toggle('dark-mode');
     });

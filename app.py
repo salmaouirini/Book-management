@@ -12,10 +12,7 @@ from flask_mail import Mail, Message
 import os
 import reprlib
 
-
-
 load_dotenv()
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
@@ -41,24 +38,6 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
-def generate_confirmation_token(email):
-    return s.dumps(email, salt='email-confirm')
-def confirm_token(token, expiration=3600):
-    try:
-        email = s.loads(token, salt='email-confirm', max_age=expiration)
-    except:
-        return False
-    return email    
-
-def generate_reset_token(email):
-    return s.dumps(email, salt='password-reset')
-def confirm_reset_token(token, expiration=3600):
-    try:
-        email = s.loads(token, salt='password-reset', max_age=expiration)
-    except:
-        return False
-    return email
-
 #################################### MODELS #######################################
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,7 +50,7 @@ class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     bio = db.Column(db.Text)
-    books = db.relationship('Book', backref='author', lazy=True)
+    books = db.relationship('Book', backref='author', lazy=True, cascade="all, delete-orphan")
 
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -85,7 +64,27 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     books = db.relationship('Book', backref='category', lazy=True)
-    
+
+
+#################################### TOKEN_EMAIL_RESET_PASSWORD ###############################
+def generate_confirmation_token(email):
+    return s.dumps(email, salt='email-confirm')
+def confirm_token(token, expiration=3600):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=expiration)
+    except:
+        return False
+    return email    
+
+
+def generate_reset_token(email):
+    return s.dumps(email, salt='password-reset')
+def confirm_reset_token(token, expiration=3600):
+    try:
+        email = s.loads(token, salt='password-reset', max_age=expiration)
+    except:
+        return False
+    return email  
 
 
 ######################### TEST_EMAIL ############################
@@ -97,7 +96,6 @@ class Category(db.Model):
 #         recipients=[app.config['MAIL_USERNAME']]
 #     )
 #     msg.body = 'Test email with plain ASCII characters.'
-
 #     try:
 #         mail.send(msg)
 #         return 'Simple test email sent successfully!'
@@ -107,7 +105,6 @@ class Category(db.Model):
 
 
 ######################## REGISTER #####################################
-    
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -118,7 +115,7 @@ def register():
         newUser = User(username=username, password=hashed_password, email=email)
         db.session.add(newUser)
         db.session.commit()
-        
+
         token = generate_confirmation_token(email)
         verification_link = url_for('confirm_email', token=token, _external=True)
         msg = Message('Confirm Your Email', sender=app.config['MAIL_USERNAME'], recipients=[email])
@@ -130,7 +127,6 @@ def register():
 
 
 ############################# EMAIL_CONFIRMATION ############################
-
 @app.route('/confirm/<token>')
 def confirm_email(token):
     email = confirm_token(token)
@@ -144,8 +140,8 @@ def confirm_email(token):
             flash('Your email has been successfully verified! You can now log in to your account.', 'success')
     else:
         flash('The confirmation link is invalid or has expired.', 'danger')
-    
     return redirect(url_for('login'))
+
 
 @app.route('/resend_verification_email', methods=['POST'])
 def resend_verification_email():
@@ -168,7 +164,6 @@ def resend_verification_email():
 
 
 ############################## LOGIN ################################
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -183,12 +178,13 @@ def login():
         if user and check_password_hash(user.password, password):
             if user.is_confirmed:
                 login_user(user)
-                return redirect(url_for('index'))
+                return redirect(url_for('books_index'))
             else:
                 flash('Please confirm your email before logging in.', 'info')
         else:
             flash('Invalid email or password. Please try again.', 'danger')
     return render_template('login.html')
+
 
 @app.context_processor
 def inject_user():
@@ -196,7 +192,6 @@ def inject_user():
 
 
 ############################### FORGOT_PASSWORD ############################
-
 @app.route('/request_password_reset', methods=['GET', 'POST'])
 def request_password_reset():
     if request.method == 'POST':
@@ -219,7 +214,6 @@ def reset_password(token):
     email = confirm_reset_token(token)
     if not email:
         return 'The reset link is invalid or has expired.'
-    
     if request.method == 'POST':
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
@@ -249,15 +243,16 @@ def resend_password_reset():
 
 
 ################################# USER_PROFILE ###########################
-
 @app.route('/user/<int:id>')
+@login_required
 def userProfile(id):
     if current_user.id != id:
-        return redirect(url_for('index'))
+        return redirect(url_for('books_index'))
     user = User.query.get_or_404(id)
     return render_template('userProfile.html', user=user)
 
 @app.route('/user/<int:id>/edit')
+@login_required
 def editUser(id):
     user = User.query.get_or_404(id)
     return render_template('edit.html', user=user)
@@ -266,24 +261,18 @@ def editUser(id):
 @login_required
 def update_user(id):
     user = User.query.get_or_404(id)
-
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-    
-        
         if username:
             user.username = username
             flash('Username updated successfully!', 'success')
-        
         if password:
             hashed_password = generate_password_hash(password)
             user.password = hashed_password
             flash('Password updated successfully!', 'success')
-        
         db.session.commit()
         return redirect(url_for('userProfile', id=user.id))
-
     return render_template('update_user.html', user=user)
 
 
@@ -291,19 +280,17 @@ def update_user(id):
 @login_required
 def delete_user(id):
     user = User.query.get_or_404(id)
-    
-    if user.id == current_user.id:  # Ensure the logged-in user is deleting their own account
+    if user.id == current_user.id:  
         db.session.delete(user)
         db.session.commit()
         flash('Your account has been deleted.', 'success')
-        logout_user()  # Log the user out after deleting the account
-        return redirect(url_for('index'))  # Redirect to the homepage or login page
-    
+        logout_user()  
+        return redirect(url_for('books_index'))  
     flash('You are not authorized to delete this account.', 'danger')
     return redirect(url_for('login'))
 
-############################# LOGOUT ###########################
 
+############################# LOGOUT ###########################
 @app.route('/logout', methods=['POST'])
 @login_required
 def logout():
@@ -317,26 +304,21 @@ def logout():
 @login_required
 def categories_list():
     categories = Category.query.all()
-    return render_template('categories_list.html', categories=categories)
+    return render_template('Category/categories_list.html', categories=categories)
 
 @app.route('/search_category', methods=['GET'])
 def search_category():
     category_query = request.args.get('category', '').strip()
-    
     if category_query:
-        # Filter categories based on the query, case-insensitive
         categories = Category.query.filter(Category.name.ilike(f'%{category_query}%')).all()
     else:
-        # Return all categories if no query is provided
         categories = Category.query.all()
-    
-    # Convert category objects to a list of dictionaries for JSON response
     categories_list = [{'id': category.id, 'name': category.name} for category in categories]
-    
     return jsonify(categories_list)
 
 
 @app.route('/add-category', methods=['GET', 'POST'])
+@login_required
 def add_category():
     if request.method == 'POST':
         category_name = request.form.get('category_name')
@@ -345,15 +327,17 @@ def add_category():
             db.session.add(new_category)
             db.session.commit()
             return redirect(url_for('categories_list'))
-    return render_template('add_category.html')
+    return render_template('Category/add_category.html')
 
 
 @app.route('/category/<int:id>/edit_category')
+@login_required
 def edit_category(id):
     category = Category.query.get_or_404(id)
-    return render_template('edit_category.html', category=category)
+    return render_template('Category/edit_category.html', category=category)
 
 @app.route('/category/<int:id>/update_category', methods=['POST'])
+@login_required
 def update_category(id):
     category = Category.query.get_or_404(id)
     name = request.form.get('category_name')  
@@ -361,68 +345,59 @@ def update_category(id):
     db.session.commit()
     return redirect(url_for('categories_list'))
 
-
-
 @app.route('/category/<int:id>/delete_category', methods=['post'])
+@login_required
 def delete_category(id):
     category = Category.query.get_or_404(id)
     db.session.delete(category)
     db.session.commit()
     return redirect(url_for('categories_list'))
 
-############################### BOOKS_CRUD ##############################
 
+############################### BOOKS_CRUD ##############################
 @app.route('/')
 @login_required
-def index():
+def books_index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     page = request.args.get('page', 1, type=int)
     books = Book.query.paginate(page=page, per_page=9)
-    return render_template('index.html', books=books)
+    return render_template('Books/index.html', books=books)
 
 @app.route('/search', methods=['GET'])
+@login_required
 def search():
     title_query = request.args.get('title', '')
     author_query = request.args.get('author', '')
     category_query = request.args.get('category', '')
-
     query = Book.query
-
     if title_query:
         query = query.filter(Book.title.ilike(f'%{title_query}%'))
-    
     if author_query:
-        # Get author IDs that match the query
         author_ids = [author.id for author in Author.query.filter(Author.name.ilike(f'%{author_query}%')).all()]
         query = query.filter(Book.author_id.in_(author_ids))
-    
     if category_query:
-        # Get category IDs that match the query
         category_ids = [category.id for category in Category.query.filter(Category.name.ilike(f'%{category_query}%')).all()]
         query = query.filter(Book.category_id.in_(category_ids))
-
     books = query.all()
-    
-    # Return JSON response for AJAX requests
     books_list = [{
         'id': book.id,
         'title': book.title,
         'author': book.author.name,
         'category': book.category.name,
-        'image': book.image  # Assuming book.image stores the filename
+        'image': book.image  
     } for book in books]
     return jsonify(books_list)
 
-
 @app.route('/create_book')
+@login_required
 def create_book():
     authors = Author.query.all()
     categories = Category.query.all()
-    return render_template('create_book.html', authors=authors, categories=categories)
-
+    return render_template('Books/create_book.html', authors=authors, categories=categories)
 
 @app.route('/add_book', methods=['POST'])
+@login_required
 def store_book():
     title = request.form.get('title')
     author_id = request.form.get('author_id')
@@ -439,18 +414,18 @@ def store_book():
     newBook = Book(title=title, author_id=author_id, image=filename, description=description, category_id=category_id)
     db.session.add(newBook)
     db.session.commit()
-    return redirect(url_for('index'))
-
+    return redirect(url_for('books_index'))
 
 @app.route('/book/<int:id>/edit_book')
+@login_required
 def edit_book(id):
     book = Book.query.get_or_404(id)
     authors = Author.query.all()
     categories = Category.query.all()
-    return render_template('edit_book.html', book=book, authors=authors, categories=categories)
-
+    return render_template('Books/edit_book.html', book=book, authors=authors, categories=categories)
 
 @app.route('/book/<int:id>/update_book', methods=['POST'])
+@login_required
 def update_book(id):
     book = Book.query.get_or_404(id)
     title = request.form.get('title')
@@ -473,19 +448,19 @@ def update_book(id):
     db.session.commit()
     return redirect(url_for('show_book', id=book.id))
 
-
 @app.route('/book/<int:id>')
+@login_required
 def show_book(id):
     book = Book.query.get_or_404(id)
-    return render_template('show_book.html', book=book)
-
+    return render_template('Books/show_book.html', book=book)
 
 @app.route('/book/<int:id>/delete_book', methods=['post'])
+@login_required
 def delete_book(id):
     book = Book.query.get_or_404(id)
     db.session.delete(book)
     db.session.commit()
-    return redirect(url_for('index'))
+    return redirect(url_for('books_index'))
 
 
 ################################### AUTHORS_CRUD #########################
@@ -493,49 +468,43 @@ def delete_book(id):
 @login_required
 def authors_list():
     authors = Author.query.all()
-    return render_template('authors_list.html', authors=authors)
+    return render_template('Authors/authors_list.html', authors=authors)
 
 @app.route('/search_author', methods=['GET'])
+@login_required
 def search_author():
     author_query = request.args.get('author', '').strip()
-    
     if author_query:
-        # Filter categories based on the query, case-insensitive
         authors = Author.query.filter(Author.name.ilike(f'%{author_query}%')).all()
     else:
-        # Return all authors if no query is provided
         authors = Author.query.all()
-    
-    # Convert category objects to a list of dictionaries for JSON response
     authors_list = [{'id': author.id, 'name': author.name} for author in authors]
-    
     return jsonify(authors_list)
 
 
-
 @app.route('/create_author')
+@login_required
 def create_author():
-    return render_template('create_author.html')
+    return render_template('Authors/create_author.html')
 
 @app.route('/add_author', methods=['POST'])
+@login_required
 def store_author():
     name = request.form.get('name')
     bio = request.form.get('bio')
-    
-    # Create a new Author instance
     newAuthor = Author(name=name, bio=bio)
     db.session.add(newAuthor)
     db.session.commit()
-    
     return redirect(url_for('authors_list'))
 
-
 @app.route('/author/<int:id>/edit_author')
+@login_required
 def edit_author(id):
     author = Author.query.get_or_404(id)
-    return render_template('edit_author.html', author=author)
+    return render_template('Authors/edit_author.html', author=author)
 
 @app.route('/author/<int:id>/update_author', methods=['POST'])
+@login_required
 def update_author(id):
     author = Author.query.get_or_404(id)
     name = request.form.get('author_name')  
@@ -545,55 +514,33 @@ def update_author(id):
     db.session.commit()
     return redirect(url_for('authors_list'))
 
-
 @app.route('/author/<int:id>')
+@login_required
 def show_author(id):
     author = Author.query.get_or_404(id)
-    return render_template('show_author.html', author=author)
-
+    return render_template('Authors/show_author.html', author=author)
 
 @app.route('/author/<int:id>/delete_author', methods=['post'])
+@login_required
 def delete_author(id):
     author = Author.query.get_or_404(id)
     db.session.delete(author)
     db.session.commit()
+    flash('Author and all associated books have been deleted.', 'success')
     return redirect(url_for('authors_list'))
-
-
 
 
 ################################### AUTHORS_BOOKS ##################
 @app.route('/authors_books')
+@login_required
 def authors_books():
-    # Get the current page for authors from the request
     page = request.args.get('page', 1, type=int)
-    # Paginate authors
     authors = Author.query.paginate(page=page, per_page=4)
-    
-
-    # Dictionary to store paginated books for each author
     paginated_books_by_author = {}
-
     for author in authors.items:
-        # Get the current page for books of this author from the request
         book_page = request.args.get(f'book_page_{author.id}', 1, type=int)
-        # Query books for the current author with pagination
         paginated_books_by_author[author.id] = Book.query.filter_by(author_id=author.id).paginate(page=book_page, per_page=3)
-
     return render_template('authors_books.html', authors=authors, paginated_books_by_author=paginated_books_by_author)
-
-# @app.route('/search_by_author')
-# def search_by_author():
-#     author_query = request.args.get('author', '')
-#     query = Book.query
-#     authors = Author.query
-    
-#     if author_query:
-#         author_ids = [author.id for author in Author.query.filter(Author.name.ilike(f'%{author_query}%')).all()]
-#         query = query.filter(Book.author_id.in_(author_ids))
-
-#     books = query.all()
-#     return render_template('index.html', books=books, authors=authors)
 
 ##########################################################################
 if __name__ == '__main__':

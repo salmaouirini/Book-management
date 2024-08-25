@@ -210,13 +210,13 @@ h1 {
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: #2c3e50; /* Deep blue */
+    background-color: #2c3e50; 
     color: #fff;
 }
 
 .search-form button {
-    background-color: #f1c40f; /* Gold */
-    color: #2e3b4e; /* Deep blue text */
+    background-color: #f1c40f; 
+    color: #2e3b4e; 
     border: none;
     padding: 10px 20px;
     margin-bottom: 10px;
@@ -227,7 +227,7 @@ h1 {
 }
 
 .search-form button:hover {
-    background-color: #f39c12; /* Deeper shade of gold */
+    background-color: #f39c12; 
     transform: scale(1.05);
 }
 
@@ -275,8 +275,8 @@ h1 {
     transform: translateY(-5px);
 }
 .book-card a {
-    text-decoration: none; /* Remove underlines from links */
-    color: inherit; /* Inherit text color from the parent */
+    text-decoration: none; 
+    color: inherit; 
 }
 
 .book-card img {
@@ -312,29 +312,26 @@ h1 {
 .page-link {
     display: block;
     padding: 0.5em 0.75em;
-    background-color: #0d1b2a; /* Background color for pagination buttons */
-    border: 1px solid #0d1b2a; /* Border color for pagination buttons */
-    color: #f39c12; /* Text color */
+    background-color: #0d1b2a; 
     text-decoration: none;
     border-radius: 0.25em;
     transition: background-color 0.2s, color 0.2s;
 }
 
 .page-link:hover {
-    background-color: #f39c12; /* Background color on hover */
-    color: #fff; /* Text color on hover */
+    background-color: #f39c12; 
+    color: #fff; 
 }
-
 .page-item.active .page-link {
-    background-color: #f39c12; /* Active button background color */
-    color: #fff; /* Active button text color */
-    border-color: #f39c12; /* Active button border color */
+    background-color: #f39c12;
+    color: #fff; 
+    border-color: #f39c12; 
 }
 
 .page-item.disabled .page-link {
-    color: #ddd; /* Disabled button text color */
-    background-color: #0d1b2a; /* Disabled button background color */
-    border-color: #0d1b2a; /* Disabled button border color */
+    color: #ddd; 
+    background-color: #0d1b2a; 
+    border-color: #0d1b2a; 
     cursor: not-allowed;
     pointer-events: none;
 }
@@ -343,7 +340,7 @@ h1 {
 .list-body {
     font-family: 'Georgia', serif;
     color: #fff;
-    background-color: #2e3b4e; /* Deep blue */
+    background-color: #2e3b4e; 
     margin: 0;
     padding: 20px;
     min-height: 100vh;
@@ -357,14 +354,14 @@ h1 {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    background-color: #0d1b2a; /* Slightly lighter deep blue */
+    background-color: #0d1b2a; 
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .list-item {
-    background-color: #2c3e50; /* Deep blue for individual items */
+    background-color: #2c3e50; 
     margin: 10px 0;
     padding: 15px;
     border-radius: 4px;
@@ -386,7 +383,7 @@ h1 {
 
 .list-item h3 {
     margin: 0;
-    color: #f1c40f; /* Gold for headings */
+    color: #f1c40f; 
 }
 
 .list-item p {
@@ -395,35 +392,35 @@ h1 {
 }
 
 .list-body h1 {
-    color: #f1c40f; /* Gold */
+    color: #f1c40f; 
     margin: 0;
 }
 .list-item a{
     text-decoration: none;
 }
-/* CSS for aligning the header and button */
+
 .header-container {
-    position: relative; /* Position relative to parent */
-    width: 100%; /* Full width */
+    position: relative; 
+    width: 100%; 
     padding: 20px;
-    text-align: center; /* Center text inside the container */
+    text-align: center; 
 }
 
 .centered-title {
     padding-right: 580px;
-    color: #f1c40f; /* Gold color */
+    color: #f1c40f; 
     font-size: 2.5em;
-    position: relative; /* Position relative to the parent */
+    position: relative; 
 }
 
 .add-btn {
-    position: absolute; /* Position absolute within the container */
-    right: 200px; /* Align to the right */
-    top: 50%; /* Vertical center alignment */
-    transform: translateY(-50%); /* Adjust for centering */
+    position: absolute; 
+    right: 200px; 
+    top: 50%; 
+    transform: translateY(-50%); 
     text-decoration: none;
-    background-color: #f1c40f; /* Gold */
-    color: #2e3b4e; /* Deep blue text */
+    background-color: #f1c40f; 
+    color: #2e3b4e; 
     padding: 10px 20px;
     font-size: 16px;
     border-radius: 4px;
@@ -431,7 +428,7 @@ h1 {
 }
 
 .add-btn:hover {
-    background-color: #f39c12; /* Deeper shade of gold */
+    background-color: #f39c12; 
     transform: scale(1.05);
 }
 
@@ -802,16 +799,16 @@ input:checked + .slider .moon-icon {
     color: #d4af37;
 }
 .author-collection .author {
-    font-size: 1.8em; /* Larger font size for emphasis */
-    color: #f6b143; /* Gold color */
-    margin-bottom: 10px; /* Space below the author name */
-    text-align: left; /* Align text to the left */
-    font-weight: bold; /* Make the text bold */
-    transition: color 0.3s ease; /* Smooth transition for hover effect */
+    font-size: 1.8em; 
+    color: #f6b143; 
+    margin-bottom: 10px; 
+    text-align: left; 
+    font-weight: bold; 
+    transition: color 0.3s ease; 
 }
 
 .author-collection .author:hover {
-    color: #FFD700; /* Brighter gold on hover */
+    color: #FFD700; 
 }
 
 
@@ -820,7 +817,7 @@ input:checked + .slider .moon-icon {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     justify-content: center;
-    position: relative; /* To position pagination correctly */
+    position: relative; 
     align-items: center;
 }
 
@@ -859,13 +856,13 @@ input:checked + .slider .moon-icon {
 
 .pagination-container {
     position: absolute;
-    top: 50%; /* Center vertically */
-    transform: translateY(-50%); /* Adjust for perfect centering */
+    top: 50%; 
+    transform: translateY(-50%); 
     width: 100%;
     display: flex;
-    justify-content: space-between; /* Align pagination icons to left and right */
+    justify-content: space-between; 
     padding: 0 20px;
-    pointer-events: none; /* Disable pointer events on the container itself to ensure buttons are clickable */
+    pointer-events: none; 
 }
 
 .pagination-btn {
@@ -876,17 +873,17 @@ input:checked + .slider .moon-icon {
     cursor: pointer;
     font-size: 24px;
     transition: color 0.3s ease;
-    pointer-events: all; /* Enable pointer events on buttons */
+    pointer-events: all; 
 }
 
 .pagination-prev {
     position: absolute;
-    left: -50px; /* Adjust to move closer to the first book */
+    left: -50px; 
 }
 
 .pagination-next {
     position: absolute;
-    right: 20px; /* Adjust to move closer to the last book */
+    right: 20px; 
 }
 
 .pagination-btn:hover {
@@ -896,13 +893,6 @@ input:checked + .slider .moon-icon {
 .pagination-btn:focus {
     outline: none;
 }
-
-
-
-
-
-
-
 
 
 /*********************************** ALERTS ******************************/

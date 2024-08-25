@@ -19,8 +19,6 @@
         <button type="submit" class="btn update-btn">Update</button>
     </form>
 </div>
-
-
 <form class="action-buttons" method="POST" action="{{ url_for('delete_user', id=user.id) }}" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
     <button type="submit" class="btn delete-btn btn-danger">Delete My Account</button>
 </form>

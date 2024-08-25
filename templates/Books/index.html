@@ -7,7 +7,7 @@
         const authorInput = document.getElementById('author');
         const categoryInput = document.getElementById('category');
         const resultsContainer = document.getElementById('search-results');
-        const searchButton = document.getElementById('search-button'); // Get the search button
+        const searchButton = document.getElementById('search-button'); 
 
         function searchBooks() {
             const title = titleInput.value;
@@ -17,7 +17,7 @@
             fetch(`/search?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&category=${encodeURIComponent(category)}`)
                 .then(response => response.json())
                 .then(data => {
-                    resultsContainer.innerHTML = '';  // Clear previous results
+                    resultsContainer.innerHTML = '';  
                     data.forEach(book => {
                         const bookCard = `
                             <div class="book-card">
@@ -34,7 +34,7 @@
                 .catch(error => console.error('Error fetching books:', error));
         }
 
-        // Attach the click event listener to the search button
+        
         searchButton.addEventListener('click', searchBooks);
     });
 </script>
@@ -49,7 +49,7 @@
         <input type="text" id="title" placeholder="Search by title">
         <input type="text" id="author" placeholder="Search by author">
         <input type="text" id="category" placeholder="Search by category">
-        <button type="button" id="search-button">Search</button> <!-- Search button with type "button" -->
+        <button type="button" id="search-button">Search</button> 
     </form>
 
     <div id="search-results" class="book-list-container">
@@ -73,7 +73,7 @@
         <ul class="pagination">
             {% if books.has_prev %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('index', page=books.prev_num) }}" aria-label="Previous">
+                <a class="page-link" href="{{ url_for('books_index', page=books.prev_num) }}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
@@ -89,7 +89,7 @@
                     {% if page_num == books.page %}
                         <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
                     {% else %}
-                        <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a></li>
+                        <li class="page-item"><a class="page-link" href="{{ url_for('books_index', page=page_num) }}">{{ page_num }}</a></li>
                     {% endif %}
                 {% else %}
                     <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -97,7 +97,7 @@
             {% endfor %}
             {% if books.has_next %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('index', page=books.next_num) }}" aria-label="Next">
+                <a class="page-link" href="{{ url_for('books_index', page=books.next_num) }}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             </li>
