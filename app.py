@@ -9,6 +9,7 @@ from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_mail import Mail, Message
+from sqlalchemy.orm import joinedload
 import os
 import reprlib
 
@@ -30,8 +31,13 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 mail = Mail(app)
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 UPLOAD_FOLDER = 'static/uploads'  
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -56,8 +62,8 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'), nullable=False)
-    description = db.Column(db.Text)
-    image = db.Column(db.String(400), nullable=True)
+    file = db.Column(db.String(400), nullable=True)  # PDF file
+    cover_image = db.Column(db.String(400), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
 
 class Category(db.Model):
@@ -361,7 +367,7 @@ def books_index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     page = request.args.get('page', 1, type=int)
-    books = Book.query.paginate(page=page, per_page=9)
+    books = Book.query.options(joinedload(Book.author), joinedload(Book.category)).paginate(page=page, per_page=9)
     return render_template('Books/index.html', books=books)
 
 @app.route('/search', methods=['GET'])
@@ -399,22 +405,37 @@ def create_book():
 @app.route('/add_book', methods=['POST'])
 @login_required
 def store_book():
-    title = request.form.get('title')
-    author_id = request.form.get('author_id')
-    category_id = request.form.get('category_id')
-    description = request.form.get('description')
-    image = request.files.get('image')  
+    if request.method == 'POST':
+        title = request.form['title']
+        author_id = request.form['author_id']
+        category_id = request.form['category_id']  
+        file = request.files['file']
+        cover_image = request.files.get('cover_image')
 
-    if image and image.filename:
-        filename = secure_filename(image.filename)
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(path)
-    else:
-        filename = None
-    newBook = Book(title=title, author_id=author_id, image=filename, description=description, category_id=category_id)
-    db.session.add(newBook)
-    db.session.commit()
-    return redirect(url_for('books_index'))
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            image_filename = None
+            if cover_image and allowed_file(cover_image.filename):
+                image_filename = secure_filename(cover_image.filename)
+                cover_image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+
+            new_book = Book(
+                title=title,
+                author_id=author_id,
+                category_id=category_id,  
+                file=filename,
+                cover_image=image_filename
+            )
+
+            db.session.add(new_book)
+            db.session.commit()
+            flash('Book added successfully', 'success')
+            return redirect(url_for('books_index'))
+        else:
+            flash('Invalid file format. Please upload an image or PDF.', 'danger')
+
 
 @app.route('/book/<int:id>/edit_book')
 @login_required
@@ -432,19 +453,33 @@ def update_book(id):
     author_id = request.form.get('author_id')
     category_id = request.form.get('category_id')
     description = request.form.get('description')
-    image = request.files.get('image')  
-    if image and image.filename:
-        filename = secure_filename(image.filename)
+    
+    # Handle cover image
+    cover_image = request.files.get('cover_image')
+    if cover_image and cover_image.filename:
+        filename = secure_filename(cover_image.filename)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(image_path)
-        book.image = filename
-    else:
-        if not image:
-            book.image = book.image
+        cover_image.save(image_path)
+        book.cover_image = filename
+    # No change if no new cover image is uploaded
+    # Else, keep existing cover_image value if no file is provided
+
+    # Handle file
+    file = request.files.get('file')
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        book.file = filename
+    # No change if no new file is uploaded
+    # Else, keep existing file value if no file is provided
+
+    # Update other book details
     book.title = title
     book.author_id = author_id
     book.category_id = category_id
     book.description = description
+    
     db.session.commit()
     return redirect(url_for('show_book', id=book.id))
 

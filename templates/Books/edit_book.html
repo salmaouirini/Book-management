@@ -20,20 +20,35 @@
             <label for="category_id">Category:</label>
             <select id="category_id" name="category_id" required>
                 {% for category in categories %}
-                <option value="{{ category.id }}" {% if book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    <option value="{{ category.id }}" {% if book.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
                 {% endfor %}
-            </select><br><br>
+            </select>
+            <br><br>
             
-            {% if book.image %}
-                <p>Current Image:</p>
-                <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="Book Image">
+            <!-- Display current cover image if it exists -->
+            {% if book.cover_image %}
+                <p>Current Cover Image:</p>
+                <img src="{{ url_for('static', filename='uploads/' + book.cover_image) }}" alt="Cover Image" style="max-width: 200px;">
             {% endif %}
             
-            <input type="file" name="image">
+            <!-- Input for new cover image upload -->
+            <p>Update Cover Image:</p>
+            <input type="file" name="cover_image" accept="image/*">
+            <br><br>
+            
+            <!-- Display current file if it exists -->
+            {% if book.file %}
+                <p>Current File: <a href="{{ url_for('static', filename='uploads/' + book.file) }}" target="_blank">View Current File</a></p>
+            {% endif %}
+            
+            <!-- Input for new file upload -->
+            <p>Update File:</p>
+            <input type="file" name="file" accept="application/pdf">
+            <br><br>
+
             <button type="submit" class="edit-create-btn">Update Book</button>
             <a href="{{ url_for('show_book', id=book.id) }}">Back to Book Details</a>
         </form>
     </center>
-    
 </body>
 {% endblock %}

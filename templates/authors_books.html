@@ -44,7 +44,7 @@
                 {% for book in paginated_books.items %}
                 <div class="book-item" id="book-{{ loop.index }}">
                     <h2>{{ book.title }}</h2><a href="{{ url_for('show_book', id=book.id) }}" style="text-decoration: none !important;">
-                    <img src="{{ url_for('static', filename='uploads/' ~ book.image) }}" alt="{{ book.title }}"></a>
+                    <img src="{{ url_for('static', filename='uploads/' ~ book.cover_image) }}" alt="{{ book.title }}"></a>
                 </div>
                 {% endfor %}
             </div>

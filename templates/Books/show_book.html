@@ -3,8 +3,8 @@
 <div class="show-page">
     <h1>{{ book.title }}</h1>
     <div class="book-details">
-        {% if book.image %}
-            <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="Book Image" class="book-image">
+        {% if book.cover_image %}
+            <img src="{{ url_for('static', filename='uploads/' + book.cover_image) }}" alt="Book cover_image" class="book-image">
         {% endif %}
         <p class="author"><strong>Author:</strong> {{ book.author.name }}</p>
         <p class="category"><strong>Category:</strong> {{ book.category.name }}</p>

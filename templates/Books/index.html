@@ -7,7 +7,7 @@
         const authorInput = document.getElementById('author');
         const categoryInput = document.getElementById('category');
         const resultsContainer = document.getElementById('search-results');
-        const searchButton = document.getElementById('search-button'); 
+        const searchButton = document.getElementById('search-button');
 
         function searchBooks() {
             const title = titleInput.value;
@@ -17,15 +17,21 @@
             fetch(`/search?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&category=${encodeURIComponent(category)}`)
                 .then(response => response.json())
                 .then(data => {
-                    resultsContainer.innerHTML = '';  
+                    resultsContainer.innerHTML = '';
                     data.forEach(book => {
+                        let content = `<h2>${book.title}</h2>`;
+                        if (book.image) {
+                            content += `<img src="/static/uploads/${book.image}" alt="${book.title} Image">`;
+                        } else if (book.file) {
+                            content += `<a href="/static/uploads/${book.file}" target="_blank">View File</a>`;
+                        }
+
+                        content += `<p>By: ${book.author}</p><p>Category: ${book.category}</p>`;
+
                         const bookCard = `
                             <div class="book-card">
                                 <a href="/book/${book.id}">
-                                    <h2>${book.title}</h2>
-                                    ${book.image ? `<img src="/static/uploads/${book.image}" alt="${book.title} Image">` : ''}
-                                    <p>By: ${book.author}</p>
-                                    <p>Category: ${book.category}</p>
+                                    ${content}
                                 </a>
                             </div>`;
                         resultsContainer.innerHTML += bookCard;
@@ -34,17 +40,17 @@
                 .catch(error => console.error('Error fetching books:', error));
         }
 
-        
         searchButton.addEventListener('click', searchBooks);
     });
 </script>
+
 <body>
     <div class="header-container">
         <h1 class="centered-title">Books list</h1>
         <a href="{{ url_for('create_book') }}" class="add-btn">Add Book</a>
-        
     </div>
     <hr style="border-color: #d4af37;"><br><br><br>
+
     <form class="search-form">
         <input type="text" id="title" placeholder="Search by title">
         <input type="text" id="author" placeholder="Search by author">
@@ -56,12 +62,21 @@
         {% if books %}
             {% for book in books %}
             <div class="book-card">
-                <a href="{{ url_for('show_book', id=book.id) }}"><h2>{{ book.title }}</h2>
-                {% if book.image %}
-                <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="{{ book.title }} Image">
-                {% endif %}
-                <p>By: {{ book.author.name }}</p></a>
-                <p>Category: {{ book.category.name }}</p> 
+                <a href="{{ url_for('show_book', id=book.id) }}">
+                    <h2>{{ book.title }}</h2>
+                    {% if book.cover_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + book.cover_image) }}" alt="{{ book.title }} Cover Image">
+                    {% endif %}
+                    <p>By: {{ book.author.name }}</p>
+                    {% if book.category %}
+                        <p>Category: {{ book.category.name }}</p>
+                    {% else %}
+                        <p>Category: Not Assigned</p>
+                    {% endif %}
+                    {% if book.file %}
+                        <a style="color: #d4af37; text-decoration: underline;" href="{{ url_for('static', filename='uploads/' + book.file) }}" target="_blank">Read Book</a>
+                    {% endif %}
+                </a>
             </div>
             {% endfor %}
         {% else %}

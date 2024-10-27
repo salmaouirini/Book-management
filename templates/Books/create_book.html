@@ -20,8 +20,10 @@
                 {% endfor %}
             </select><br>
 
-
-            <input type="file" name="image">
+            <label>Cover Image</label>
+            <input type="file" name="cover_image" accept="image/*" required>
+            <label>Book's file</label>
+            <input type="file" name="file" accept="application/pdf" required>
             <button type="submit" class="edit-create-btn">Add Book</button>
         </form>
     </center>
