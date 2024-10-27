@@ -15,7 +15,11 @@ import reprlib
 
 load_dotenv()
 
+
 app = Flask(__name__)
+SECRET_KEY = os.getenv('SECRET_KEY')
+print("SECRET_KEY:", SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
