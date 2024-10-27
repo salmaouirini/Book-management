@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('add_category') }}" method="POST" class="edit-create-form">
+            <h1>Add a New Category</h1>
+            <input type="text" id="category_name" name="category_name" placeholder="Category Name" required>
+            <button type="submit" class="edit-create-btn">Add Category</button>
+        </form>
+        <a href="{{ url_for('books_index') }}">Go Back</a>
+    </center>
+</body>
+{% endblock %}

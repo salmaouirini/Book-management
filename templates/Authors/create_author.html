@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('store_author') }}" method="post" enctype="multipart/form-data" class="edit-create-form">
+            <h1>Add New Author</h1>
+            <input type="text" name="name" placeholder="Author Name" required>
+            <textarea name="bio" placeholder="Author Bio"></textarea>
+            <button type="submit" class="edit-create-btn">Add Author</button>
+        </form>
+    </center>
+</body>
+{% endblock %}

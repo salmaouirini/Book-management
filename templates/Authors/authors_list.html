@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const authorInput = document.getElementById('author');
+        const resultsContainer = document.getElementById('search-results');
+
+        function searchAuthors() {
+            const author = authorInput.value.trim(); 
+
+            fetch(`/search_author?author=${author}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = ''; 
+                    data.forEach(author => {
+                        const authorCard = `
+                        <div class="list-item">
+                            <h3>${author.name}</h3><br>
+                            <div>
+                                <a href="/edit_author/${author.id}" class="btn edit-btn">Edit</a>
+                                <form action="/delete_author/${author.id}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn delete-btn" onclick="return confirm('Are you sure you want to delete this author?');">Delete</button>
+                                </form> 
+                            </div>
+                        </div><br>`;
+                        resultsContainer.innerHTML += authorCard;
+                    });
+                })
+                .catch(error => console.error('Error fetching authors:', error));
+        }
+
+        authorInput.addEventListener('input', searchAuthors);
+    });
+</script>
+<body class="list-body">
+    <center>
+        <div class="header-container">
+            <h1 class="centered-title">Authors List</h1>
+            <a href="{{ url_for('create_author') }}" class="add-btn">Add Author</a>
+        </div>
+        <br><hr style="border-color: #d4af37;"><br><br>
+        <form class="search-form category-author-search">
+            <input type="text" id="author" placeholder="Search by author"> 
+            <button type="button" onclick="searchAuthors()">Search</button>
+        </form>
+        <div id="search-results" class="list-container">
+            {% for author in authors %}
+                <div class="list-item">
+                    <div class="left-info-author">
+                        <a href="{{ url_for('show_author', id=author.id) }}">
+                            <h3>{{ author.name }}</h3>
+                            <p>{{ author.bio | truncate(70) }}</p>
+                        </a>
+                    </div>
+                    <br>
+                    <div class="right-btns">
+                        <a href="{{ url_for('edit_author', id=author.id) }}" class="btn edit-btn"><i class="fas fa-edit"></i></a>
+                        <form action="{{ url_for('delete_author', id=author.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn delete-btn" onclick="return confirm('Are you sure you want to delete this author?');"><i class="fas fa-trash-alt"></i></button>
+                        </form> 
+                    </div>
+                </div>
+                <br>
+            {% endfor %}
+        </div>
+    </center>
+</body>
+{% endblock %}

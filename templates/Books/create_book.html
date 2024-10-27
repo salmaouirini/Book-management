@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('store_book') }}" method="post" enctype="multipart/form-data" class="edit-create-form">
+            <h1>Add New Book</h1>
+            <input type="text" name="title" placeholder="Book Title" required>
+
+            <select name="author_id" required>
+                <option value="" disabled selected>Select Author</option>
+                {% for author in authors %}
+                    <option value="{{ author.id }}">{{ author.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="category_id" name="category_id" required>
+                <option value="" disabled selected placeholder="">Select Category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select><br>
+
+            <label>Cover Image</label>
+            <input type="file" name="cover_image" accept="image/*" required>
+            <label>Book's file</label>
+            <input type="file" name="file" accept="application/pdf" required>
+            <button type="submit" class="edit-create-btn">Add Book</button>
+        </form>
+    </center>
+</body>
+{% endblock %}

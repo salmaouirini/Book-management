@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<body class="edit-create-body">
+    <center>
+        <form action="{{ url_for('update_category', id=category.id) }}" method="POST" class="edit-create-form">
+            <h1>Add a New Category</h1>
+            <input type="text" id="category_name" name="category_name" value="{{ category.name }}" placeholder="Category Name" required>
+            <button type="submit" class="edit-create-btn">Update Category</button>
+            <a href="{{ url_for('categories_list') }}">Go Back</a>
+        </form>
+        
+    </center>
+</body>
+{% endblock %}
