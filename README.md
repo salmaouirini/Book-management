@@ -39,8 +39,9 @@ The Book Management App is a web application built with Flask and Django, provid
 
 - **Backend:** Flask, Django
 - **Frontend:** HTML, CSS
-- **Database:** SQLite (or any other preferred database)
-- **Email Service:** SMTP (for sending verification emails)
+- **Database:** SQLite 
+- **Email Service:** (configured with SMTP and managed using Flask-Mail for sending verification and notification emails)
+
 
 ## Installation
 
