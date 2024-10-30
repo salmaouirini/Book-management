@@ -377,27 +377,30 @@ def books_index():
 @app.route('/search', methods=['GET'])
 @login_required
 def search():
-    title_query = request.args.get('title', '')
-    author_query = request.args.get('author', '')
-    category_query = request.args.get('category', '')
-    query = Book.query
-    if title_query:
-        query = query.filter(Book.title.ilike(f'%{title_query}%'))
-    if author_query:
-        author_ids = [author.id for author in Author.query.filter(Author.name.ilike(f'%{author_query}%')).all()]
-        query = query.filter(Book.author_id.in_(author_ids))
-    if category_query:
-        category_ids = [category.id for category in Category.query.filter(Category.name.ilike(f'%{category_query}%')).all()]
-        query = query.filter(Book.category_id.in_(category_ids))
-    books = query.all()
-    books_list = [{
-        'id': book.id,
-        'title': book.title,
-        'author': book.author.name,
-        'category': book.category.name,
-        'image': book.image  
-    } for book in books]
-    return jsonify(books_list)
+    try:
+        title_query = request.args.get('title', '')
+        author_query = request.args.get('author', '')
+        category_query = request.args.get('category', '')
+        query = Book.query
+        if title_query:
+            query = query.filter(Book.title.ilike(f'%{title_query}%'))
+        if author_query:
+            author_ids = [author.id for author in Author.query.filter(Author.name.ilike(f'%{author_query}%')).all()]
+            query = query.filter(Book.author_id.in_(author_ids))
+        if category_query:
+            category_ids = [category.id for category in Category.query.filter(Category.name.ilike(f'%{category_query}%')).all()]
+            query = query.filter(Book.category_id.in_(category_ids))
+        books = query.all()
+        books_list = [{
+            'id': book.id,
+            'title': book.title,
+            'author': book.author.name,
+            'category': book.category.name,
+            'image': book.cover_image  
+        } for book in books]
+        return jsonify(books_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/create_book')
 @login_required
